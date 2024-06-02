@@ -1,0 +1,5 @@
+.env
+.prettierrc
+cloud-sql-proxy
+lokal-ind-f0da82fbbe40.json
+node_modules
