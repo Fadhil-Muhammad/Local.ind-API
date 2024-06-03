@@ -3,9 +3,7 @@ const app = express();
 const morgan = require('morgan');
 const bodyParser = require('body-parser')
 
-const productRoutes = require('./routes/products');
-const ordersRoutes = require('./routes/orders');
-const addressesRoutes = require('./routes/Addresses')
+const addressesRoutes = require('../API/routes/addresses')
 
 app.use(morgan('dev'));
 app.use(bodyParser.urlencoded({extended:false}))
@@ -21,8 +19,6 @@ app.use((req, res, next)=>{
     next();
 });
 
-app.use('/products', productRoutes);
-app.use('/orders', ordersRoutes);
 app.use('/addresses',addressesRoutes)
 
 app.use((req,res,next)=>{
