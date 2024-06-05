@@ -61,12 +61,11 @@ router.get("/:CategoryId", async (req, res) => {
 
 router.patch("/:CategoryId", async (req, res) => {
     const categoryId = req.params.CategoryId;
-    const { categoryName, logo, address} = req.body;
+    const { categoryName, description} = req.body;
 
     const fieldsToUpdate = {};
     if (categoryName) fieldsToUpdate.CategoryName = categoryName;
-    if (logo) fieldsToUpdate.Logo = logo;
-    if (adress) fieldsToUpdate.Address = address;
+    if (description) fieldsToUpdate.Description = description;
     fieldsToUpdate.UpdatedAt = new Date();
 
     try {
@@ -86,7 +85,6 @@ router.patch("/:CategoryId", async (req, res) => {
     }
 });
 
-// Delete address by AddressId
 router.delete("/:CategoryId", async (req, res) => {
     const categoryId = req.params.CategoryId;
 

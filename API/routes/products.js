@@ -26,7 +26,6 @@ router.get("/", async (req, res) => {
     }
 });
 
-// POST a new product with brand information
 router.post("/", async (req, res) => {
     const { productName, productDescription, brandId, categoryId, unitPrice, unitSize, unitInStock, isAvailable, pictures} = req.body;
 
@@ -58,6 +57,36 @@ router.post("/", async (req, res) => {
             .leftJoin("Categories", "Products.CategoryId", "Categories.CategoryId")
             .first();
         res.json(newProduct);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Server error");
+    }
+});
+router.patch("/:ProductId", async (req, res) => {
+    const productId = req.params.ProductId;
+    const { productName, productDescription, categoryId, unitPrice, unitSize, unitInStock, isAvailable, pictures} = req.body;
+
+    const fieldsToUpdate = {};
+    if (productName) fieldsToUpdate.ProductName = productName;
+    if (productDescription) fieldsToUpdate.ProductDescription = productDescription;
+    if (categoryId) fieldsToUpdate.CategoryId = categoryId;
+    if (unitPrice) fieldsToUpdate.UnitPrice = unitPrice;
+    if (unitSize) fieldsToUpdate.UnitSize = unitSize;
+    if (unitInStock) fieldsToUpdate.UnitInStock = unitInStock;
+    if (isAvailable) fieldsToUpdate.isAvailable = isAvailable;
+    if (pictures) fieldsToUpdate.Pictures = pictures;
+
+    try {
+        const updatedCount = await knex("Products")
+            .where("ProductId", productId)
+            .update(fieldsToUpdate);
+        if (updatedCount === 0) {
+            return res.status(404).send("product not found");
+        }
+        const updatedshipper = await knex("Products")
+            .where("ProductId", productId)
+            .first();
+        res.json(updatedshipper);
     } catch (error) {
         console.error(error);
         res.status(500).send("Server error");

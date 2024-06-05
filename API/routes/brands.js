@@ -87,7 +87,6 @@ router.patch("/:BrandId", async (req, res) => {
     }
 });
 
-// Delete address by AddressId
 router.delete("/:BrandId", async (req, res) => {
     const brandId = req.params.BrandId;
 

@@ -6,7 +6,9 @@ const bodyParser = require('body-parser');
 const brandsRoutes = require('../API/routes/brands');
 const categoriesRoutes = require('../API/routes/categories')
 const productsRoutes = require('../API/routes/products')
-const loginRoutes = require('../API/routes/login')
+const shippersRoutes = require('../API/routes/shippers')
+const paymentsRoutes = require('../API/routes/payments')
+const orderStatusRoutes = require('../API/routes/orderStatus')
 
 app.use(morgan('dev'));
 app.use(bodyParser.urlencoded({extended:false}));
@@ -25,7 +27,9 @@ app.use((req, res, next)=>{
 app.use('/brands',brandsRoutes);
 app.use('/categories',categoriesRoutes);
 app.use('/products',productsRoutes);
-app.use('/login',loginRoutes);
+app.use('/shippers',shippersRoutes);
+app.use('/payments',paymentsRoutes);
+app.use('/orderStatus',orderStatusRoutes);
 
 app.use((req,res,next)=>{
     const error = new Error('Not Found');
