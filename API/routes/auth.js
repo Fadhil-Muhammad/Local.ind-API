@@ -11,7 +11,7 @@ const generateUUID = () => {
 
 // Registration route
 router.post('/register', async (req, res) => {
-  const { fullName, address, phone, email, password, picture} = req.body;
+  const { fullName, address, phone, email, password, picture, isBrand} = req.body;
   const Email= email
 
   try {
@@ -37,7 +37,8 @@ router.post('/register', async (req, res) => {
       Picture: picture,
       Password: hashedPassword,
       CreatedAt: new Date(),
-      UpdatedAt: new Date() 
+      UpdatedAt: new Date() ,
+      isBrand: isBrand || false
     };
 
     // Insert the new customer
