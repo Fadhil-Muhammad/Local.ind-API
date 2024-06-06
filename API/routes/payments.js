@@ -20,7 +20,7 @@ router.get("/", async (req, res) => {
 });
 
 router.post("/", async (req, res) => {
-    const { paymentType, idAllow} = req.body;
+    const { paymentType, idAllow } = req.body;
 
     try {
         const paymentId = generateUUID();
@@ -59,7 +59,7 @@ router.get("/:paymentId", async (req, res) => {
 
 router.patch("/:PaymentId", async (req, res) => {
     const paymentId = req.params.PaymentId;
-    const { paymentType, idAllow} = req.body;
+    const { paymentType, idAllow } = req.body;
 
     const fieldsToUpdate = {};
     if (paymentType) fieldsToUpdate.PaymentType = paymentType;

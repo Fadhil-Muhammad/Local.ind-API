@@ -20,7 +20,7 @@ router.get("/", async (req, res) => {
 });
 
 router.post("/", async (req, res) => {
-    const { companyName, phone} = req.body;
+    const { companyName, phone } = req.body;
 
     try {
         const shipperId = generateUUID();
@@ -59,7 +59,7 @@ router.get("/:shipperId", async (req, res) => {
 
 router.patch("/:ShipperId", async (req, res) => {
     const shipperId = req.params.ShipperId;
-    const { shipperName, companyName, phone} = req.body;
+    const { shipperName, companyName, phone } = req.body;
 
     const fieldsToUpdate = {};
     if (shipperName) fieldsToUpdate.ShipperName = shipperName;

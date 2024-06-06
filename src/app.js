@@ -9,9 +9,9 @@ const productsRoutes = require('../API/routes/products');
 const shippersRoutes = require('../API/routes/shippers');
 const paymentsRoutes = require('../API/routes/payments');
 const orderStatusRoutes = require('../API/routes/orderStatus');
-const authMiddlewareRoutes = require('../API/auth/middleware/authMiddleware');
 const authRoutes = require('../API/routes/auth');
-const cartRoutes = require('../API/routes/cart')
+const cartRoutes = require('../API/routes/cart');
+const wishlistRoutes = require('../API/routes/wishlist');
 
 app.use(morgan('dev'));
 app.use(bodyParser.urlencoded({extended:false}));
@@ -35,7 +35,7 @@ app.use('/payments',paymentsRoutes);
 app.use('/orderStatus',orderStatusRoutes);
 app.use('/auth',authRoutes);
 app.use('/cart',cartRoutes);
-
+app.use('/wishlist',wishlistRoutes)
 
 app.use((req,res,next)=>{
     const error = new Error('Not Found');

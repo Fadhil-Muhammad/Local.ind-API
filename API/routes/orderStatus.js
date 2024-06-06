@@ -20,7 +20,7 @@ router.get("/", async (req, res) => {
 });
 
 router.post("/", async (req, res) => {
-    const { statusName} = req.body;
+    const { statusName } = req.body;
 
     try {
         const orderStatusId = generateUUID();
@@ -28,7 +28,7 @@ router.post("/", async (req, res) => {
             OrderStatusId: orderStatusId,
             StatusName: statusName,
             CreatedAt: new Date(),
-            UpdatedAt: new Date()
+            UpdatedAt: new Date(),
         });
 
         const newShipper = await knex("OrderStatus")
@@ -60,7 +60,7 @@ router.get("/:orderStatusId", async (req, res) => {
 
 router.patch("/:OrderStatusId", async (req, res) => {
     const orderStatusId = req.params.OrderStatusId;
-    const { statusName} = req.body;
+    const { statusName } = req.body;
 
     const fieldsToUpdate = {};
     if (statusName) fieldsToUpdate.StatusName = statusName;

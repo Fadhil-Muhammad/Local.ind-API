@@ -20,7 +20,7 @@ router.get("/", async (req, res) => {
 });
 
 router.post("/", async (req, res) => {
-    const { categoryName, description} = req.body;
+    const { categoryName, description } = req.body;
 
     try {
         const categoryId = generateUUID();
@@ -45,7 +45,7 @@ router.post("/", async (req, res) => {
 router.get("/:CategoryId", async (req, res) => {
     const categoryId = req.params.CategoryId;
 
-    try {   
+    try {
         const category = await knex("Categories")
             .where("CategoryId", categoryId)
             .first();
@@ -61,7 +61,7 @@ router.get("/:CategoryId", async (req, res) => {
 
 router.patch("/:CategoryId", async (req, res) => {
     const categoryId = req.params.CategoryId;
-    const { categoryName, description} = req.body;
+    const { categoryName, description } = req.body;
 
     const fieldsToUpdate = {};
     if (categoryName) fieldsToUpdate.CategoryName = categoryName;

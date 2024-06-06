@@ -20,7 +20,7 @@ router.get("/", async (req, res) => {
 });
 
 router.post("/", async (req, res) => {
-    const { brandName, address,logo} = req.body;
+    const { brandName, address, logo } = req.body;
 
     try {
         const brandId = generateUUID();
@@ -33,9 +33,7 @@ router.post("/", async (req, res) => {
             UpdatedAt: new Date(),
         });
 
-        const newBrand = await knex("Brands")
-            .where("BrandId", brandId)
-            .first();
+        const newBrand = await knex("Brands").where("BrandId", brandId).first();
         res.json(newBrand);
     } catch (error) {
         console.error(error);
@@ -47,9 +45,7 @@ router.get("/:BrandId", async (req, res) => {
     const brandId = req.params.BrandId;
 
     try {
-        const brand = await knex("Brands")
-            .where("BrandId", brandId)
-            .first();
+        const brand = await knex("Brands").where("BrandId", brandId).first();
         if (!brand) {
             return res.status(404).send("Brand not found");
         }
@@ -62,7 +58,7 @@ router.get("/:BrandId", async (req, res) => {
 
 router.patch("/:BrandId", async (req, res) => {
     const brandId = req.params.BrandId;
-    const { brandName, logo, address} = req.body;
+    const { brandName, logo, address } = req.body;
 
     const fieldsToUpdate = {};
     if (brandName) fieldsToUpdate.BrandName = brandName;

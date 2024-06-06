@@ -12,13 +12,13 @@ const generateUUID = () => {
 router.get("/", async (req, res) => {
     try {
         const products = await knex("Products")
-            .select(
-                "Products.*",
-                "Brands.BrandName",
-                "Categories.CategoryName"
-            )
-            .leftJoin("Brands", "Products.BrandId", "Brands.BrandId")       
-            .leftJoin("Categories", "Products.CategoryId", "Categories.CategoryId");
+            .select("Products.*", "Brands.BrandName", "Categories.CategoryName")
+            .leftJoin("Brands", "Products.BrandId", "Brands.BrandId")
+            .leftJoin(
+                "Categories",
+                "Products.CategoryId",
+                "Categories.CategoryId"
+            );
         res.json(products);
     } catch (error) {
         console.error(error);
@@ -27,7 +27,17 @@ router.get("/", async (req, res) => {
 });
 
 router.post("/", async (req, res) => {
-    const { productName, productDescription, brandId, categoryId, unitPrice, unitSize, unitInStock, isAvailable, pictures} = req.body;
+    const {
+        productName,
+        productDescription,
+        brandId,
+        categoryId,
+        unitPrice,
+        unitSize,
+        unitInStock,
+        isAvailable,
+        pictures,
+    } = req.body;
 
     try {
         const productId = generateUUID();
@@ -36,8 +46,8 @@ router.post("/", async (req, res) => {
             ProductName: productName,
             ProductDescription: productDescription,
             BrandId: brandId,
-            CategoryId:categoryId,
-            UnitPrice:unitPrice,
+            CategoryId: categoryId,
+            UnitPrice: unitPrice,
             UnitSize: unitSize,
             UnitInStock: unitInStock,
             isAvailable: isAvailable,
@@ -47,14 +57,14 @@ router.post("/", async (req, res) => {
         });
 
         const newProduct = await knex("Products")
-            .select(
-                "Products.*",
-                "Brands.BrandName",
-                "Categories.CategoryName",
-            )
+            .select("Products.*", "Brands.BrandName", "Categories.CategoryName")
             .where("Products.ProductId", productId)
             .leftJoin("Brands", "Products.BrandId", "Brands.BrandId")
-            .leftJoin("Categories", "Products.CategoryId", "Categories.CategoryId")
+            .leftJoin(
+                "Categories",
+                "Products.CategoryId",
+                "Categories.CategoryId"
+            )
             .first();
         res.json(newProduct);
     } catch (error) {
@@ -64,11 +74,21 @@ router.post("/", async (req, res) => {
 });
 router.patch("/:ProductId", async (req, res) => {
     const productId = req.params.ProductId;
-    const { productName, productDescription, categoryId, unitPrice, unitSize, unitInStock, isAvailable, pictures} = req.body;
+    const {
+        productName,
+        productDescription,
+        categoryId,
+        unitPrice,
+        unitSize,
+        unitInStock,
+        isAvailable,
+        pictures,
+    } = req.body;
 
     const fieldsToUpdate = {};
     if (productName) fieldsToUpdate.ProductName = productName;
-    if (productDescription) fieldsToUpdate.ProductDescription = productDescription;
+    if (productDescription)
+        fieldsToUpdate.ProductDescription = productDescription;
     if (categoryId) fieldsToUpdate.CategoryId = categoryId;
     if (unitPrice) fieldsToUpdate.UnitPrice = unitPrice;
     if (unitSize) fieldsToUpdate.UnitSize = unitSize;

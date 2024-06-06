@@ -12,20 +12,23 @@ const generateUUID = () => {
 
 router.post("/", authMiddleware, async (req, res) => {
     try {
-        const { productId, count } = req.body;
+        const { freight, paymentId, orderStatusId, shipperId } = req.body;
         const customerId = req.customerId;
 
         // Add the item to the cart
-        const cartItem = {
-            CartId: generateUUID(),
+        const order = {
+            OrderId: generateUUID(),
             CustomerId: customerId,
-            ProductId: productId,
-            Count: count,
+            PaymentId: paymentId,
+            OrderStatusId: orderStatusId,
+            ShipperId: shipperId,
+            Freight: freight,
+            OrderDate: new Date(),
             CreatedAt: new Date(),
             UpdatedAt: new Date(),
         };
 
-        await knex("Cart").insert(cartItem);
+        await knex("Cart").insert(order);
 
         res.status(201).json({ message: "Item added to cart" });
     } catch (err) {
