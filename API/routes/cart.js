@@ -69,7 +69,8 @@ router.get("/:CustomerId", authMiddleware, async (req, res) => {
             .leftJoin("Products", "Cart.ProductId", "Products.ProductId")
             .leftJoin("Customers", "Cart.CustomerId", "Customers.CustomerId")
             .leftJoin("Brands", "Products.BrandId", "Brands.BrandId")
-            .where("Cart.CustomerId", customerId);
+            .where({"Cart.CustomerId": customerId,
+            "Cart.IsActive": true});
         if (!cart) {
             return res.status(404).send("Cart not found");
         }
