@@ -12,7 +12,7 @@ const generateUUID = () => {
 // Registration route
 router.post('/register', async (req, res) => {
   const { fullName, address, phone, email, password, picture, isBrand} = req.body;
-  const Email= email
+  const Email= email;
 
   try {
     // Check if the email already exists

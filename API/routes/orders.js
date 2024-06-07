@@ -52,11 +52,13 @@ router.post("/", authMiddleware, async (req, res) => {
         return res.status(404).json({ error: "Cart item not found" });
     }
 
+    // const DefaultOrderStatus = await knex("OrderStatus").where({"StatusName":"Processing"}).select("OrderStatus.OrderStatusId")
+
         const order = {
             OrderId: generateUUID(),
             CustomerId: customerId,
             PaymentId: paymentId,
-            OrderStatusId: orderStatusId || "962f440d-81ca-4cad-8e74-1981fa9299b5",
+            OrderStatusId: orderStatusId || "797708fc-0203-48d5-9d55-092e0a0c0c17",
             ShipperId: shipperId,
             Freight: freight,
             OrderDate: new Date(),

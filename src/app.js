@@ -15,12 +15,12 @@ const wishlistRoutes = require('../API/routes/wishlist');
 const orderRoutes = require('../API/routes/orders');
 
 app.use(morgan('dev'));
-app.use(bodyParser.urlencoded({extended:false}));
+app.use(bodyParser.urlencoded({extended:true}));
 app.use(bodyParser.json());
 
 app.use((req, res, next)=>{
-    res.header('Acces-Control-Allow-Origin', '*');
-    res.header('Acces-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
     if (req.method === 'OPTIONS'){
         res.header('Acces-Control-Allow-Method', 'PUT, POST, PATCH, DELETE, GET');
         return res.status(200).json({});
