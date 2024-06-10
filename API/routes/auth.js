@@ -3,7 +3,9 @@ const router = express.Router();
 const knexConfig = require('../databases/knex')[process.env.NODE_ENV || 'development'];
 const knex = require('knex')(knexConfig);
 const { signToken, hashPassword, comparePassword } = require('../auth/authUtil');
+const authMiddleware = require("../auth/middleware/authMiddleware");
 const crypto = require('crypto');
+const getSignedUrl = require('../databases/imageBucket')
 
 const generateUUID = () => {
   return crypto.randomUUID();
@@ -11,7 +13,7 @@ const generateUUID = () => {
 
 // Registration route
 router.post('/register', async (req, res) => {
-  const { fullName, address, phone, email, password, picture, isBrand} = req.body;
+  const { fullName, address, phone, email, password, isBrand} = req.body;
   const Email= email;
 
   try {
@@ -27,6 +29,8 @@ router.post('/register', async (req, res) => {
     // Generate a unique CustomerId using UUID
     const customerId = generateUUID();
 
+    const pictureUrl = await getSignedUrl();
+
     // Create a new customer
     const newCustomer = {
       CustomerId: customerId,
@@ -34,7 +38,7 @@ router.post('/register', async (req, res) => {
       Address:address,
       Phone:phone,
       Email,
-      Picture: picture,
+      Picture: pictureUrl ,
       Password: hashedPassword,
       CreatedAt: new Date(),
       UpdatedAt: new Date() ,
@@ -79,5 +83,28 @@ router.post('/login', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+router.get('/:CustomerId/profile',authMiddleware, async(req, res) => {
+  const customerId = req.customerId;
+
+    try {
+        const cart = await knex("Customers")
+            .select(
+              "Customers.FullName",
+              "Customers.Email",
+              "Customers.Picture",
+              "Customers.Phone",
+              "Customers.Address",
+              "Customers.isBrand"
+            ).where("CustomerId",customerId);
+        if (!cart) {
+            return res.status(404).send("Customer not found");
+        }
+        res.json(cart);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Server error");
+    }
+})
 
 module.exports = router;    

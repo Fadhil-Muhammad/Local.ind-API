@@ -72,6 +72,29 @@ router.post("/", async (req, res) => {
         res.status(500).send("Server error");
     }
 });
+
+router.get("/:ProductId", async (req, res) => {
+    const { ProductId  } = req.params;
+    try {
+        const product = await knex("Products")
+            .select("Products.*", "Brands.BrandName", "Categories.CategoryName")
+            .leftJoin("Brands", "Products.BrandId", "Brands.BrandId")
+            .leftJoin(
+                "Categories",
+                "Products.CategoryId",
+                "Categories.CategoryId"
+            )
+            .where("ProductId",ProductId);
+        if(!product) {
+            return res.status(404).send("Product not found");
+        }
+        res.json(product);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Server error");
+    }
+});
+
 router.patch("/:ProductId", async (req, res) => {
     const productId = req.params.ProductId;
     const {
