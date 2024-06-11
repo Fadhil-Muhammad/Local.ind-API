@@ -106,7 +106,7 @@ router.get("/", async (req, res) => {
     }
 });
 
-router.get("/:CustomerId/process", authMiddleware, async (req, res) => {
+router.get("/process", authMiddleware, async (req, res) => {
     const customerId = req.customerId;
 
     try {
@@ -137,7 +137,7 @@ router.get("/:CustomerId/process", authMiddleware, async (req, res) => {
     }
 });
 
-router.get("/:CustomerId/finished", authMiddleware, async (req, res) => {
+router.get("/finished", authMiddleware, async (req, res) => {
     const customerId = req.customerId;
 
     try {

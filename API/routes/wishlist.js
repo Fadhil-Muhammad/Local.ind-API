@@ -57,7 +57,7 @@ router.get("/", async (req, res) => {
     }
 });
 
-router.get("/:CustomerId", authMiddleware, async (req, res) => {
+router.get("/myWishlist", authMiddleware, async (req, res) => {
     const customerId = req.customerId;
 
     try {
@@ -87,7 +87,7 @@ router.get("/:CustomerId", authMiddleware, async (req, res) => {
     }
 });
 
-router.delete("/:CustomerId/:WishListId", authMiddleware, async (req, res) => {
+router.delete("/:WishListId", authMiddleware, async (req, res) => {
     const wishlistId = req.params.WishListId;
 
     try {

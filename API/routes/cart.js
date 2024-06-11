@@ -54,7 +54,7 @@ router.get("/", async (req, res) => {
     }
 });
 
-router.get("/:CustomerId", authMiddleware, async (req, res) => {
+router.get("/mycart", authMiddleware, async (req, res) => {
     const customerId = req.customerId;
 
     try {
@@ -104,7 +104,7 @@ router.patch("/:CartId", authMiddleware, async (req, res) => {
     }
 });
 
-router.delete("/:CustomerId/:CartId", authMiddleware, async (req, res) => {
+router.delete("/:CartId", authMiddleware, async (req, res) => {
     const cartId = req.params.CartId;
 
     try {

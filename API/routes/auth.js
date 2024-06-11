@@ -4,8 +4,8 @@ const knexConfig = require('../databases/knex')[process.env.NODE_ENV || 'develop
 const knex = require('knex')(knexConfig);
 const { signToken, hashPassword, comparePassword } = require('../auth/authUtil');
 const authMiddleware = require("../auth/middleware/authMiddleware");
-const crypto = require('crypto');
-const getSignedUrl = require('../databases/imageBucket')
+const crypto = require('crypto'); 
+const getSignedUrl = require('../databases/buckets/userImg')
 
 const generateUUID = () => {
   return crypto.randomUUID();
@@ -84,7 +84,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
-router.get('/:CustomerId/profile',authMiddleware, async(req, res) => {
+router.get('/profile',authMiddleware, async(req, res) => {
   const customerId = req.customerId;
 
     try {
