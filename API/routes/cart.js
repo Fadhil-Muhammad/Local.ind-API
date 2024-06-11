@@ -54,7 +54,7 @@ router.get("/", async (req, res) => {
     }
 });
 
-router.get("/mycart", authMiddleware, async (req, res) => {
+router.get("/myCart", authMiddleware, async (req, res) => {
     const customerId = req.customerId;
 
     try {
