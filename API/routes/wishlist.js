@@ -87,8 +87,8 @@ router.get("/myWishlist", authMiddleware, async (req, res) => {
     }
 });
 
-router.delete("/:WishListId", authMiddleware, async (req, res) => {
-    const wishlistId = req.params.WishListId;
+router.delete("/:wishListId", authMiddleware, async (req, res) => {
+    const wishlistId = req.params.wishListId;
 
     try {
         const deletedCount = await knex("Wishlist")

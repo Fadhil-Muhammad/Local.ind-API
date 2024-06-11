@@ -57,8 +57,8 @@ router.get("/:paymentId", async (req, res) => {
     }
 });
 
-router.patch("/:PaymentId", async (req, res) => {
-    const paymentId = req.params.PaymentId;
+router.patch("/:paymentId", async (req, res) => {
+    const paymentId = req.params.paymentId;
     const { paymentType, idAllow } = req.body;
 
     const fieldsToUpdate = {};
@@ -82,8 +82,8 @@ router.patch("/:PaymentId", async (req, res) => {
     }
 });
 
-router.delete("/:PaymentId", async (req, res) => {
-    const paymentId = req.params.PaymentId;
+router.delete("/:paymentId", async (req, res) => {
+    const paymentId = req.params.paymentId;
 
     try {
         const deletedCount = await knex("Payments")
