@@ -4,14 +4,29 @@ const knexConfig =
     require("../databases/knex")[process.env.NODE_ENV || "development"];
 const knex = require("knex")(knexConfig);
 const crypto = require("crypto");
+const getBrandSignedUrl = require("../databases/buckets/brandLogo");
+const multer = require("multer");
 
 const generateUUID = () => {
     return crypto.randomUUID();
 };
 
+const upload = multer();
+
 router.get("/", async (req, res) => {
     try {
         const brands = await knex("Brands").select("*");
+
+        // Generate signed URLs for each brand's logo
+        for (const brand of brands) {
+            const logoUrl = await getBrandSignedUrl(
+                brand.Logo,
+                brand.BrandName,
+                "read"
+            );
+            brand.LogoUrl = logoUrl;
+        }
+
         res.json(brands);
     } catch (error) {
         console.error(error);
@@ -19,16 +34,24 @@ router.get("/", async (req, res) => {
     }
 });
 
-router.post("/", async (req, res) => {
-    const { brandName, address, logo } = req.body;
+router.post("/", upload.single("logo"), async (req, res) => {
+    const { brandName, address } = req.body;
+    const logo = req.file;
 
     try {
         const brandId = generateUUID();
+        const logoPath = await getBrandSignedUrl(
+            null,
+            brandName,
+            "create",
+            logo
+        );
+
         await knex("Brands").insert({
             BrandId: brandId,
             Address: address,
             BrandName: brandName,
-            Logo: logo,
+            Logo: logoPath, // Store the relative path
             CreatedAt: new Date(),
             UpdatedAt: new Date(),
         });
@@ -46,6 +69,13 @@ router.get("/:BrandId", async (req, res) => {
 
     try {
         const brand = await knex("Brands").where("BrandId", brandId).first();
+        const logoUrl = await getBrandSignedUrl(
+            brand.Logo,
+            brand.BrandName,
+            "read"
+        );
+        brand.LogoUrl = logoUrl;
+
         if (!brand) {
             return res.status(404).send("Brand not found");
         }
@@ -56,13 +86,16 @@ router.get("/:BrandId", async (req, res) => {
     }
 });
 
-router.patch("/:BrandId", async (req, res) => {
+router.patch("/:BrandId", upload.single("logo"), async (req, res) => {
     const brandId = req.params.BrandId;
-    const { brandName, logo, address } = req.body;
+    const { brandName, address } = req.body;
+    const logo = req.file;
 
     const fieldsToUpdate = {};
+    const logoPath = await getBrandSignedUrl(null, brandName, "create", logo);
+
     if (brandName) fieldsToUpdate.BrandName = brandName;
-    if (logo) fieldsToUpdate.Logo = logo;
+    if (logo) fieldsToUpdate.Logo = logoPath;
     if (address) fieldsToUpdate.Address = address;
     fieldsToUpdate.UpdatedAt = new Date();
 
@@ -76,6 +109,12 @@ router.patch("/:BrandId", async (req, res) => {
         const updatedBrand = await knex("Brands")
             .where("BrandId", brandId)
             .first();
+        const logoUrl = await getBrandSignedUrl(
+            updatedBrand.Logo,
+            updatedBrand.BrandName,
+            "read"
+        );
+        updatedBrand.LogoUrl = logoUrl;
         res.json(updatedBrand);
     } catch (error) {
         console.error(error);
