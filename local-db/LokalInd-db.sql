@@ -5,7 +5,7 @@
 -- Dumped from database version 14.5
 -- Dumped by pg_dump version 14.5
 
--- Started on 2024-06-06 13:07:17
+-- Started on 2024-06-12 12:49:18
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -31,7 +31,7 @@ CREATE TABLE public."Brands" (
     "BrandId" character varying(50) NOT NULL,
     "BrandName" character varying(50) NOT NULL,
     "Address" character varying(100),
-    "Logo" character varying(255) NOT NULL,
+    "Logo" text NOT NULL,
     "CreatedAt" date NOT NULL,
     "UpdatedAt" date NOT NULL
 );
@@ -80,7 +80,7 @@ ALTER TABLE public."Categories" OWNER TO postgres;
 
 CREATE TABLE public."Customers" (
     "CustomerId" character varying(50) NOT NULL,
-    "Picture" character varying(100) NOT NULL,
+    "Picture" text NOT NULL,
     "FullName" character varying(100) NOT NULL,
     "Address" character varying(100),
     "Phone" character varying(20) NOT NULL,
@@ -211,6 +211,7 @@ ALTER TABLE public."Wishlist" OWNER TO postgres;
 
 COPY public."Brands" ("BrandId", "BrandName", "Address", "Logo", "CreatedAt", "UpdatedAt") FROM stdin;
 c712f334-13d1-47ea-9017-762373693eaa	Erigo	Jl Kantor Erigo 22 Jakarta	dawdawdwad.png	2024-06-04	2024-06-04
+9d347869-5aa9-426d-8d60-c06a5223b1d3	Eiger	Jl Eiger no 1A 211	brand-logo/Eiger/1718108584905_eiger.png	2024-06-11	2024-06-11
 \.
 
 
@@ -226,6 +227,7 @@ COPY public."Cart" ("CartId", "ProductId", "CustomerId", "Count", "CreatedAt", "
 13d674d2-5891-44eb-9908-d0a7f309c58f	e3358352-2c93-463d-9000-02f4bb8d6236	0df986a0-923e-45f1-946b-de19943431d8	10	2024-06-06	2024-06-06	f
 6ac0f804-d12c-4776-9fd7-ee64ae6b9474	e3358352-2c93-463d-9000-02f4bb8d6236	0df986a0-923e-45f1-946b-de19943431d8	1	2024-06-06	2024-06-06	f
 1d3d89f3-800d-4021-bf2f-2447c6a524f7	05c07707-1d1d-4ab9-b40c-9bd5c94b58f6	0df986a0-923e-45f1-946b-de19943431d8	3	2024-06-06	2024-06-06	f
+e0bd7c16-6652-4234-963d-eb926be91756	e3358352-2c93-463d-9000-02f4bb8d6236	17cbc274-d44f-4a6d-83d5-63a9e2744a9a	22	2024-06-11	2024-06-11	t
 \.
 
 
@@ -251,6 +253,9 @@ COPY public."Customers" ("CustomerId", "Picture", "FullName", "Address", "Phone"
 0df986a0-923e-45f1-946b-de19943431d8	1.png	Fadhil Muhammad	Jl Juragan Sinda Raya	08323132123	fadhil@gmail.com	$2a$10$HR3ZFMOiRM9Yuynbt7kup.H5mC.kUXPpRgtp49qD.Qlpssix/JYC.	2024-06-05	2024-06-05	f
 ae40a342-0795-4219-94b8-926e3ec727db	1.png2	Fadhil Muhammad2	Jl Juragan Sinda Raya2	083231321232	fadhil@gmail.com2	$2a$10$TqoBggoBy9BIW.KeFfsVI.h403nYnlwgRfbeXd7Ym8a5ZLtt7AtkW	2024-06-06	2024-06-06	f
 cde20d82-fbb1-4273-9c03-76a8960935b0	erigo.png2	Erigo	JL Erigo	ErigoPhone	Erigo@gmail.com	$2a$10$kmLAP7yCcDbJBtRaasv9q.WchTTZfYvY92gFQfs4mOHR/RsXDd3KO	2024-06-06	2024-06-06	t
+90b267ed-9320-450a-a2fc-eee36cafab20	erigo.png23	Erigo3	JL Erigo3	083213314	Erigo@gmail.com3	$2a$10$vV1dVHsje3Z9kN5y9ZiRaO8KQIzmZDQ/8h9LpHkZNc5KbeNysUO0a	2024-06-07	2024-06-07	t
+f1b1bc95-eb34-4020-9d6d-38793b64093b	https://storage.googleapis.com/lokalind-img-bucket/user-picture/user.jpg?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=cloud-storage-access%40lokal-ind.iam.gserviceaccount.com%2F20240610%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20240610T112705Z&X-Goog-Expires=900&X-Goog-SignedHeaders=host&X-Goog-Signature=7419d1eb4b3ef3aa7254f0cad76cad0e00ca02e0c73fdd06d989f38ce7742543340c368973a009eec13e12ffc6dde74d4dd4b993d18a837636ff8a60f3bd8d3bc0ce72ff98e7322e6f728b29bf6533c7b61f9073494d59f07a38a4baaea21fdbee22245217b8ae52a8a56e6b3756d260797ff5a2d497fc6a12ba7682cf38d9d367828fddbdd2c5a84f63760e24f1fb6d37d0cdb985774f729f410b09b737ddd8c1d067dc78b20474dec6f517b0f632cfd2d1ede8d6c1dbdd99e4b6a04ca442af83a146518afa1e4d701ba29245f50f27c8efbf2f20d422f18f842361ef36e5e781c88b17c1ec60e432b6f05e66e796ae3b26798529e725bb5e488c1896506423	nopic	nopic.jpg	083213123	nopic@gmail.com	$2a$10$6L/xtEKMRWTcrRu2yrG4KuUTs1tfQXpAcilXiecNEmlNClUUPEOMC	2024-06-10	2024-06-10	f
+17cbc274-d44f-4a6d-83d5-63a9e2744a9a	https://storage.googleapis.com/lokalind-img-bucket/user-picture/user.jpg?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=cloud-storage-access%40lokal-ind.iam.gserviceaccount.com%2F20240611%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20240611T014525Z&X-Goog-Expires=900&X-Goog-SignedHeaders=host&X-Goog-Signature=7743d22f2c4813dbbfec6544d712bec7700308a46a244db2207c4173c10b217ba9afd1ec594e81a089a8b371f87513c8e579a1c6d8f007be2a5c8697ac74445ff7458ef3efeceb1e8ea2c0df65b6ed9b000a7833d0198200e598cc248417422aacf6f5ac7c10e02957f4fe2104369bccdc345b5f1d1af8119207b7de3a0d6ef0de4e97dde50cd56b92286b32196880fdd13b497db1612fc784229e01cda810b8d424d791ea0454156bff8125ea0878afbd0035b049ff69712dbd0013157a120664ed47b24d2734ff5311407fd967d83d332ebcadc8536e5e53d555761d29291cf677f6f0498a84108ad5f76590972ec8457c6821f6a433204a1a9cc48f3d1aa0	withpic	withpic.jpg	083213123	withpic@gmail.com	$2a$10$Vgogju7nFSLEe7ai0Y1VzeVJW.8GR7mZ6k5F4HjHdeSB/aLfIGORy	2024-06-11	2024-06-11	f
 \.
 
 
@@ -527,7 +532,7 @@ ALTER TABLE ONLY public."Wishlist"
     ADD CONSTRAINT "Wishlist_ProductId_fkey" FOREIGN KEY ("ProductId") REFERENCES public."Products"("ProductId") ON UPDATE CASCADE;
 
 
--- Completed on 2024-06-06 13:07:18
+-- Completed on 2024-06-12 12:49:19
 
 --
 -- PostgreSQL database dump complete
