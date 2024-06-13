@@ -19,22 +19,18 @@ const addDays = (date, days) => {
 
 router.post("/", authMiddleware, async (req, res) => {
     try {
-        const { freight, paymentId, orderStatusId, shipperId } = req.body;
+        const { freight, paymentId, orderStatusId, shipperId, cartId } = req.body;
         const customerId = req.customerId;
 
-        const allCartId = await knex("Cart")
-            .where("CustomerId", customerId)
-            .select("Cart.CartId");
-        const cartIds = allCartId.map((row) => row.CartId);
-
         const product = await knex("Products")
-            .select("ProductId", "UnitPrice")
-            .where("ProductId", (knex) => {
-                knex.select("ProductId")
-                    .from("Cart")
-                    .where("CartId", cartIds[0]);
-            })
-            .first();
+        .select("ProductId", "UnitPrice")
+        .where("ProductId", (knex) => {
+            knex.select("ProductId")
+                .from("Cart")
+                .where("IsActive","true")
+                .where("CartId", cartId);
+        })
+        .first();
 
         if (!product) {
             return res
@@ -44,7 +40,7 @@ router.post("/", authMiddleware, async (req, res) => {
 
         const cartItem = await knex("Cart")
             .select("Count")
-            .where("CartId", cartIds[0])
+            .where("CartId", cartId)
             .first();
 
         if (!cartItem) {
@@ -65,7 +61,7 @@ router.post("/", authMiddleware, async (req, res) => {
             PaymentDate: new Date(),
             CreatedAt: new Date(),
             UpdatedAt: new Date(),
-            CartId: cartIds[0],
+            CartId: cartId,
             ProductId: product.ProductId,
             Price: product.UnitPrice,
             Quantity: cartItem.Count,
@@ -76,7 +72,7 @@ router.post("/", authMiddleware, async (req, res) => {
         const Total = order.Price * order.Quantity;
 
         await knex("Cart")
-            .where("CartId", cartIds[0])
+            .where("CartId", cartId)
             .update({ IsActive: false });
         res.status(201).json({
             message: "Kindly wait until the order is arive",
@@ -187,7 +183,8 @@ router.get("/finished", authMiddleware, async (req, res) => {
                 "Payments.PaymentType",
                 "OrderStatus.StatusName",
                 "Shippers.CompanyName",
-                "Products.ProductName"
+                "Products.ProductName",
+                "Products.Picture"
             )
             .leftJoin("Customers", "Orders.CustomerId", "Customers.CustomerId")
             .leftJoin("Payments", "Orders.PaymentId", "Payments.PaymentId")
