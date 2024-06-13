@@ -5,6 +5,7 @@ const knexConfig =
 const knex = require("knex")(knexConfig);
 const authMiddleware = require("../auth/middleware/authMiddleware");
 const crypto = require("crypto");
+const getProductSignedUrl = require("../databases/buckets/productImg");
 
 const generateUUID = () => {
     return crypto.randomUUID();
@@ -40,6 +41,7 @@ router.get("/", async (req, res) => {
             .select(
                 "Cart.*",
                 "Products.ProductName",
+                "Products.Picture",
                 "Products.UnitPrice",
                 "Customers.FullName",
                 "Brands.BrandName"
@@ -47,6 +49,14 @@ router.get("/", async (req, res) => {
             .leftJoin("Products", "Cart.ProductId", "Products.ProductId")
             .leftJoin("Customers", "Cart.CustomerId", "Customers.CustomerId")
             .leftJoin("Brands", "Products.BrandId", "Brands.BrandId");
+        for (const product of Cart) {
+            const imgUrl = await getProductSignedUrl(
+                product.Picture,
+                product.ProductName,
+                "read"
+            );
+            product.ImgUrl = imgUrl;
+        }
         res.json(Cart);
     } catch (error) {
         console.error(error);
@@ -62,6 +72,7 @@ router.get("/myCart", authMiddleware, async (req, res) => {
             .select(
                 "Cart.*",
                 "Products.ProductName",
+                "Products.Picture",
                 "Products.UnitPrice",
                 "Customers.FullName",
                 "Brands.BrandName"
@@ -70,6 +81,14 @@ router.get("/myCart", authMiddleware, async (req, res) => {
             .leftJoin("Customers", "Cart.CustomerId", "Customers.CustomerId")
             .leftJoin("Brands", "Products.BrandId", "Brands.BrandId")
             .where({ "Cart.CustomerId": customerId, "Cart.IsActive": true });
+        for (const product of cart) {
+            const imgUrl = await getProductSignedUrl(
+                product.Picture,
+                product.ProductName,
+                "read"
+            );
+            product.ImgUrl = imgUrl;
+        }
         if (!cart) {
             return res.status(404).send("Cart not found");
         }
@@ -82,10 +101,11 @@ router.get("/myCart", authMiddleware, async (req, res) => {
 
 router.patch("/:CartId", authMiddleware, async (req, res) => {
     const cartId = req.params.CartId;
-    const { count } = req.body;
+    const { count, isActive } = req.body;
 
     const fieldsToUpdate = {};
     if (count) fieldsToUpdate.Count = count;
+    if (isActive) fieldsToUpdate.isActive = isActive;
     fieldsToUpdate.UpdatedAt = new Date();
 
     try {

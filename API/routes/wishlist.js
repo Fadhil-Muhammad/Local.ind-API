@@ -5,6 +5,7 @@ const knexConfig =
 const knex = require("knex")(knexConfig);
 const authMiddleware = require("../auth/middleware/authMiddleware");
 const crypto = require("crypto");
+const getProductSignedUrl = require("../databases/buckets/productImg");
 
 const generateUUID = () => {
     return crypto.randomUUID();
@@ -39,6 +40,7 @@ router.get("/", async (req, res) => {
             .select(
                 "Wishlist.*",
                 "Products.ProductName",
+                "Products.Picture",
                 "Products.UnitPrice",
                 "Customers.FullName",
                 "Brands.BrandName"
@@ -50,6 +52,14 @@ router.get("/", async (req, res) => {
                 "Customers.CustomerId"
             )
             .leftJoin("Brands", "Products.BrandId", "Brands.BrandId");
+        for (const product of wishlist) {
+            const imgUrl = await getProductSignedUrl(
+                product.Picture,
+                product.ProductName,
+                "read"
+            );
+            product.ImgUrl = imgUrl;
+        }
         res.json(wishlist);
     } catch (error) {
         console.error(error);
@@ -65,6 +75,7 @@ router.get("/myWishlist", authMiddleware, async (req, res) => {
             .select(
                 "Wishlist.*",
                 "Products.ProductName",
+                "Products.Picture",
                 "Products.UnitPrice",
                 "Customers.FullName",
                 "Brands.BrandName"
@@ -77,6 +88,14 @@ router.get("/myWishlist", authMiddleware, async (req, res) => {
             )
             .leftJoin("Brands", "Products.BrandId", "Brands.BrandId")
             .where("Wishlist.CustomerId", customerId);
+        for (const product of wishlist) {
+            const imgUrl = await getProductSignedUrl(
+                product.Picture,
+                product.ProductName,
+                "read"
+            );
+            product.ImgUrl = imgUrl;
+        }
         if (!wishlist) {
             return res.status(404).send("Wishlist not found");
         }

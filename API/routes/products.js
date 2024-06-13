@@ -15,6 +15,12 @@ const upload = multer();
 
 router.get("/", async (req, res) => {
     try {
+        const page = parseInt(req.query.page, 10) || 1;
+        const limit = parseInt(req.query.limit, 10) || 10;
+        const offset = (page - 1) * limit;
+
+        const [{ count }] = await knex("Products").count("ProductId as count");
+
         const products = await knex("Products")
             .select("Products.*", "Brands.BrandName", "Categories.CategoryName")
             .leftJoin("Brands", "Products.BrandId", "Brands.BrandId")
@@ -22,7 +28,9 @@ router.get("/", async (req, res) => {
                 "Categories",
                 "Products.CategoryId",
                 "Categories.CategoryId"
-            );
+            )
+            .limit(limit)
+            .offset(offset);
 
         for (const product of products) {
             const imgUrl = await getProductSignedUrl(
@@ -32,7 +40,20 @@ router.get("/", async (req, res) => {
             );
             product.ImgUrl = imgUrl;
         }
-        res.json(products);
+
+        // Calculate total pages
+        const totalPages = Math.ceil(count / limit);
+
+        // Return the paginated results and metadata
+        res.json({
+            products,
+            pagination: {
+                totalItems: count,
+                currentPage: page,
+                totalPages: totalPages,
+                pageSize: limit,
+            },
+        });
     } catch (error) {
         console.error(error);
         res.status(500).send("Server error");
@@ -56,7 +77,12 @@ router.post("/", upload.single("picture"), async (req, res) => {
     try {
         const productId = generateUUID();
 
-        const imgPath = await getProductSignedUrl(null,productName,"create",picture);
+        const imgPath = await getProductSignedUrl(
+            null,
+            productName,
+            "create",
+            picture
+        );
         await knex("Products").insert({
             ProductId: productId,
             ProductName: productName,
@@ -100,7 +126,8 @@ router.get("/:ProductId", async (req, res) => {
                 "Products.CategoryId",
                 "Categories.CategoryId"
             )
-            .where("ProductId", ProductId).first();
+            .where("ProductId", ProductId)
+            .first();
         const imgUrl = await getProductSignedUrl(
             product.Picture,
             product.ProductName,
@@ -117,7 +144,7 @@ router.get("/:ProductId", async (req, res) => {
     }
 });
 
-router.patch("/:ProductId",upload.single("picture"), async (req, res) => {
+router.patch("/:ProductId", upload.single("picture"), async (req, res) => {
     const productId = req.params.ProductId;
     const {
         productName,
@@ -126,14 +153,19 @@ router.patch("/:ProductId",upload.single("picture"), async (req, res) => {
         unitPrice,
         unitSize,
         unitInStock,
-        isAvailable
+        isAvailable,
     } = req.body;
 
     const picture = req.file;
 
     const fieldsToUpdate = {};
-    const imgPath = await getProductSignedUrl(null, productName, "create", picture);
-    
+    const imgPath = await getProductSignedUrl(
+        null,
+        productName,
+        "create",
+        picture
+    );
+
     if (productName) fieldsToUpdate.ProductName = productName;
     if (productDescription)
         fieldsToUpdate.ProductDescription = productDescription;

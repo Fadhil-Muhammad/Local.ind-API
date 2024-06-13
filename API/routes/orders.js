@@ -5,6 +5,7 @@ const knexConfig =
 const knex = require("knex")(knexConfig);
 const authMiddleware = require("../auth/middleware/authMiddleware");
 const crypto = require("crypto");
+const getProductSignedUrl = require("../databases/buckets/productImg");
 
 const generateUUID = () => {
     return crypto.randomUUID();
@@ -41,7 +42,6 @@ router.post("/", authMiddleware, async (req, res) => {
                 .json({ error: "Product not found in the cart" });
         }
 
-        // Fetch the quantity from the cart table
         const cartItem = await knex("Cart")
             .select("Count")
             .where("CartId", cartIds[0])
@@ -51,8 +51,6 @@ router.post("/", authMiddleware, async (req, res) => {
             return res.status(404).json({ error: "Cart item not found" });
         }
 
-        // const DefaultOrderStatus = await knex("OrderStatus").where({"StatusName":"Processing"}).select("OrderStatus.OrderStatusId")
-
         const order = {
             OrderId: generateUUID(),
             CustomerId: customerId,
@@ -60,7 +58,7 @@ router.post("/", authMiddleware, async (req, res) => {
             OrderStatusId:
                 orderStatusId || "797708fc-0203-48d5-9d55-092e0a0c0c17",
             ShipperId: shipperId,
-            Freight: freight,
+            Freight: freight || 1,
             OrderDate: new Date(),
             ShipDate: addDays(new Date(), 1),
             ShipLimitDate: addDays(new Date(), 3),
@@ -75,12 +73,15 @@ router.post("/", authMiddleware, async (req, res) => {
 
         await knex("Orders").insert(order);
 
+        const Total = order.Price * order.Quantity;
+
         await knex("Cart")
             .where("CartId", cartIds[0])
             .update({ IsActive: false });
         res.status(201).json({
             message: "Kindly wait until the order is arive",
             order,
+            Total,
         });
     } catch (err) {
         console.error(err);
@@ -97,7 +98,8 @@ router.get("/", async (req, res) => {
                 "Payments.PaymentType",
                 "OrderStatus.StatusName",
                 "Shippers.CompanyName",
-                "Products.ProductName"
+                "Products.ProductName",
+                "Products.Picture"
             )
             .leftJoin("Customers", "Orders.CustomerId", "Customers.CustomerId")
             .leftJoin("Payments", "Orders.PaymentId", "Payments.PaymentId")
@@ -108,6 +110,17 @@ router.get("/", async (req, res) => {
             )
             .leftJoin("Shippers", "Orders.ShipperId", "Shippers.ShipperId")
             .leftJoin("Products", "Orders.ProductId", "Products.ProductId");
+        for (const item of order) {
+            item.Total = item.Price * item.Quantity;
+        }
+        for (const product of order) {
+            const imgUrl = await getProductSignedUrl(
+                product.Picture,
+                product.ProductName,
+                "read"
+            );
+            product.ImgUrl = imgUrl;
+        }
         res.json(order);
     } catch (error) {
         console.error(error);
@@ -126,7 +139,8 @@ router.get("/process", authMiddleware, async (req, res) => {
                 "Payments.PaymentType",
                 "OrderStatus.StatusName",
                 "Shippers.CompanyName",
-                "Products.ProductName"
+                "Products.ProductName",
+                "Products.Picture"
             )
             .leftJoin("Customers", "Orders.CustomerId", "Customers.CustomerId")
             .leftJoin("Payments", "Orders.PaymentId", "Payments.PaymentId")
@@ -139,9 +153,21 @@ router.get("/process", authMiddleware, async (req, res) => {
             .leftJoin("Products", "Orders.ProductId", "Products.ProductId")
             .where({
                 "Orders.CustomerId": customerId,
+                "OrderStatus.StatusName": "Processing",
             });
         if (order.length === 0) {
-            return res.status(404).send("Cart not found");
+            return res.status(404).send("order not found");
+        }
+        for (const item of order) {
+            item.Total = item.Price * item.Quantity;
+        }
+        for (const product of order) {
+            const imgUrl = await getProductSignedUrl(
+                product.Picture,
+                product.ProductName,
+                "read"
+            );
+            product.ImgUrl = imgUrl;
         }
         res.json(order);
     } catch (error) {
@@ -181,6 +207,17 @@ router.get("/finished", authMiddleware, async (req, res) => {
                 .status(404)
                 .send("No finished orders found for this customer");
         }
+        for (const item of order) {
+            item.Total = item.Price * item.Quantity;
+        }
+        for (const product of order) {
+            const imgUrl = await getProductSignedUrl(
+                product.Picture,
+                product.ProductName,
+                "read"
+            );
+            product.ImgUrl = imgUrl;
+        }
         res.json(order);
     } catch (error) {
         console.error(error);
@@ -188,4 +225,23 @@ router.get("/finished", authMiddleware, async (req, res) => {
     }
 });
 
+router.patch("/finishOrder", authMiddleware, async (req, res) => {
+    const { orderId } = req.body;
+
+    const fieldsToUpdate = {};
+    fieldsToUpdate.OrderStatusId = "bd9fe794-365c-4f1a-b74c-c3d1e2643b13";
+
+    try {
+        const updatedCount = await knex("Orders")
+            .where("OrderId", orderId)
+            .update(fieldsToUpdate);
+        if (updatedCount === 0) {
+            return res.status(404).send("Order not found");
+        }
+        res.json({ message: "Order Finished" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Server error");
+    }
+});
 module.exports = router;
