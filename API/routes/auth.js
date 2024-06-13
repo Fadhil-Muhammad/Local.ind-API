@@ -88,7 +88,7 @@ router.post("/login", async (req, res) => {
         // Generate a JWT token
         const token = signToken({ customerId: customer.CustomerId });
 
-        res.json({ token });
+        res.json( {token : token,message : customer.isBrand});
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: "Internal server error" });

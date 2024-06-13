@@ -4,10 +4,14 @@ const knexConfig =
     require("../databases/knex")[process.env.NODE_ENV || "development"];
 const knex = require("knex")(knexConfig);
 const crypto = require("crypto");
+const getProductSignedUrl = require("../databases/buckets/productImg");
+const multer = require("multer");
 
 const generateUUID = () => {
     return crypto.randomUUID();
 };
+
+const upload = multer();
 
 router.get("/", async (req, res) => {
     try {
@@ -19,6 +23,15 @@ router.get("/", async (req, res) => {
                 "Products.CategoryId",
                 "Categories.CategoryId"
             );
+
+        for (const product of products) {
+            const imgUrl = await getProductSignedUrl(
+                product.Picture,
+                product.ProductName,
+                "read"
+            );
+            product.ImgUrl = imgUrl;
+        }
         res.json(products);
     } catch (error) {
         console.error(error);
@@ -26,7 +39,7 @@ router.get("/", async (req, res) => {
     }
 });
 
-router.post("/", async (req, res) => {
+router.post("/", upload.single("picture"), async (req, res) => {
     const {
         productName,
         productDescription,
@@ -36,11 +49,14 @@ router.post("/", async (req, res) => {
         unitSize,
         unitInStock,
         isAvailable,
-        pictures,
     } = req.body;
+
+    const picture = req.file;
 
     try {
         const productId = generateUUID();
+
+        const imgPath = await getProductSignedUrl(null,productName,"create",picture);
         await knex("Products").insert({
             ProductId: productId,
             ProductName: productName,
@@ -51,7 +67,7 @@ router.post("/", async (req, res) => {
             UnitSize: unitSize,
             UnitInStock: unitInStock,
             isAvailable: isAvailable,
-            Pictures: pictures,
+            Picture: imgPath, // Use knex.raw for raw SQL injection
             CreatedAt: new Date(),
             UpdatedAt: new Date(),
         });
@@ -74,7 +90,7 @@ router.post("/", async (req, res) => {
 });
 
 router.get("/:ProductId", async (req, res) => {
-    const { ProductId  } = req.params;
+    const { ProductId } = req.params;
     try {
         const product = await knex("Products")
             .select("Products.*", "Brands.BrandName", "Categories.CategoryName")
@@ -84,8 +100,14 @@ router.get("/:ProductId", async (req, res) => {
                 "Products.CategoryId",
                 "Categories.CategoryId"
             )
-            .where("ProductId",ProductId);
-        if(!product) {
+            .where("ProductId", ProductId).first();
+        const imgUrl = await getProductSignedUrl(
+            product.Picture,
+            product.ProductName,
+            "read"
+        );
+        product.ImgUrl = imgUrl;
+        if (!product) {
             return res.status(404).send("Product not found");
         }
         res.json(product);
@@ -95,7 +117,7 @@ router.get("/:ProductId", async (req, res) => {
     }
 });
 
-router.patch("/:ProductId", async (req, res) => {
+router.patch("/:ProductId",upload.single("picture"), async (req, res) => {
     const productId = req.params.ProductId;
     const {
         productName,
@@ -104,11 +126,14 @@ router.patch("/:ProductId", async (req, res) => {
         unitPrice,
         unitSize,
         unitInStock,
-        isAvailable,
-        pictures,
+        isAvailable
     } = req.body;
 
+    const picture = req.file;
+
     const fieldsToUpdate = {};
+    const imgPath = await getProductSignedUrl(null, productName, "create", picture);
+    
     if (productName) fieldsToUpdate.ProductName = productName;
     if (productDescription)
         fieldsToUpdate.ProductDescription = productDescription;
@@ -117,7 +142,7 @@ router.patch("/:ProductId", async (req, res) => {
     if (unitSize) fieldsToUpdate.UnitSize = unitSize;
     if (unitInStock) fieldsToUpdate.UnitInStock = unitInStock;
     if (isAvailable) fieldsToUpdate.isAvailable = isAvailable;
-    if (pictures) fieldsToUpdate.Pictures = pictures;
+    if (picture) fieldsToUpdate.Picture = imgPath;
 
     try {
         const updatedCount = await knex("Products")

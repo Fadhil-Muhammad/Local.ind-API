@@ -6,7 +6,7 @@ const SECRET_KEY = process.env.SECRET_KEY;
 
 // Helper function to sign JWT token
 const signToken = (payload) => {
-    return jwt.sign(payload, SECRET_KEY, { expiresIn: "1h" });
+    return jwt.sign(payload, SECRET_KEY, { expiresIn: "24h" });
 };
 
 // Helper function to verify JWT token
