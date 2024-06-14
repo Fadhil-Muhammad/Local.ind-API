@@ -176,6 +176,36 @@ router.get("/brand/:BrandName", async (req, res) => {
     }
 });
 
+router.get("/category/:CategoryName", async (req, res) => {
+    const { CategoryName } = req.params;
+    try {
+        const products = await knex("Products")
+            .select("Products.*", "Brands.BrandName", "Categories.CategoryName")
+            .leftJoin("Brands", "Products.BrandId", "Brands.BrandId")
+            .leftJoin(
+                "Categories",
+                "Products.CategoryId",
+                "Categories.CategoryId"
+            )
+            .where("Categories.CategoryName", CategoryName);
+        for (const product of products) {
+            const imgUrl = await getProductSignedUrl(
+                product.Picture,
+                product.ProductName,
+                "read"
+            );
+            product.ImgUrl = imgUrl;
+        }
+        if (!products) {
+            return res.status(404).send("Product not found");
+        }
+        res.json(products);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Server error");
+    }
+});
+
 router.patch("/:ProductId", upload.single("picture"), async (req, res) => {
     const productId = req.params.ProductId;
     const {
