@@ -70,6 +70,7 @@ router.post("/", upload.single("picture"), async (req, res) => {
         unitSize,
         unitInStock,
         isAvailable,
+        rating,
     } = req.body;
 
     const picture = req.file;
@@ -93,7 +94,8 @@ router.post("/", upload.single("picture"), async (req, res) => {
             UnitSize: unitSize,
             UnitInStock: unitInStock,
             isAvailable: isAvailable,
-            Picture: imgPath, // Use knex.raw for raw SQL injection
+            Picture: imgPath,
+            Rating: rating || 0,
             CreatedAt: new Date(),
             UpdatedAt: new Date(),
         });
@@ -138,6 +140,36 @@ router.get("/:ProductId", async (req, res) => {
             return res.status(404).send("Product not found");
         }
         res.json(product);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Server error");
+    }
+});
+
+router.get("/brand/:BrandName", async (req, res) => {
+    const { BrandName } = req.params;
+    try {
+        const products = await knex("Products")
+            .select("Products.*", "Brands.BrandName", "Categories.CategoryName")
+            .leftJoin("Brands", "Products.BrandId", "Brands.BrandId")
+            .leftJoin(
+                "Categories",
+                "Products.CategoryId",
+                "Categories.CategoryId"
+            )
+            .where("Brands.BrandName", BrandName);
+        for (const product of products) {
+            const imgUrl = await getProductSignedUrl(
+                product.Picture,
+                product.ProductName,
+                "read"
+            );
+            product.ImgUrl = imgUrl;
+        }
+        if (!products) {
+            return res.status(404).send("Product not found");
+        }
+        res.json(products);
     } catch (error) {
         console.error(error);
         res.status(500).send("Server error");
