@@ -13,6 +13,7 @@ const authRoutes = require("../API/routes/auth");
 const cartRoutes = require("../API/routes/cart");
 const wishlistRoutes = require("../API/routes/wishlist");
 const orderRoutes = require("../API/routes/orders");
+const recommendationRoutes = require("../API/routes/recommendation");
 
 app.use(morgan("dev"));
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -44,6 +45,7 @@ app.use("/auth", authRoutes);
 app.use("/cart", cartRoutes);
 app.use("/wishlist", wishlistRoutes);
 app.use("/orders", orderRoutes);
+app.use("/recommendation",recommendationRoutes);
 
 app.use((req, res, next) => {
     const error = new Error("Not Found");
