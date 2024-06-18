@@ -1,7 +1,6 @@
 const natural = require("natural");
 const tf = require("@tensorflow/tfjs");
-const knexConfig =
-    require("../databases/knex")[process.env.NODE_ENV || "development"];
+const knexConfig = require("../databases/knex")[process.env.NODE_ENV || "development"];
 const knex = require("knex")(knexConfig);
 const getProductSignedUrl = require("../databases/buckets/productImg");
 
@@ -9,8 +8,10 @@ const getProductSignedUrl = require("../databases/buckets/productImg");
 async function fetchDataFromDB() {
     try {
         return await knex
-            .select("ProductId", "ProductName", "CategoryId", "BrandId")
-            .from("Products");
+            .select("ProductId", "ProductName", "CategoryName", "BrandName")
+            .from("Products")
+            .leftJoin("Brands", "Products.BrandId", "Brands.BrandId")
+            .leftJoin("Categories", "Products.CategoryId", "Categories.CategoryId");
     } catch (error) {
         console.error("Error fetching data from DB:", error);
         throw error;
@@ -24,9 +25,9 @@ async function preprocessData(data) {
         combined_features: (
             row.ProductName +
             " " +
-            row.CategoryId +
+            row.CategoryName +
             " " +
-            row.BrandId
+            row.BrandName
         ).toLowerCase(),
     }));
 
@@ -41,13 +42,31 @@ async function preprocessData(data) {
         return vector;
     });
 
-    console.log("Preprocessed Data:", df); // Debugging log
     return { vectorizer, tfidfMatrix, df };
 }
 
-// Get recommendations
-function getRecommendations(query, vectorizer, tfidfMatrix, df, topN = 20) {
+// Preprocess query
+function preprocessQuery(query, noItemsFound = false) {
+    query = query.replace(/[^a-zA-Z\s]/g, '');
+    query = query.replace(/(.)\1+/g, '$1');
     query = query.toLowerCase();
+
+    if (noItemsFound) {
+        if (query.includes('exe')) return 'executive';
+        if (query.includes('er')) return 'erigo';
+        if (query.includes('ei')) return 'eiger';
+    }
+
+    query = query.replace(/exe/g, 'executive');
+    query = query.replace(/er/g, 'erigo');
+    query = query.replace(/ei/g, 'eiger');
+
+    return query;
+}
+
+// Get recommendations
+function getRecommendations(query, vectorizer, tfidfMatrix, df, topN = 10) {
+    query = preprocessQuery(query);
     const queryVector = [];
     vectorizer.tfidfs(query, (i, measure) => queryVector.push(measure));
 
@@ -62,10 +81,14 @@ function getRecommendations(query, vectorizer, tfidfMatrix, df, topN = 20) {
         const normB = Math.sqrt(
             queryVector.reduce((sum, val) => sum + val * val, 0)
         );
-        return dotProduct / (normA * normB);
+        return dotProduct / (normA * normB) || 0; // Return 0 if NaN
     });
 
-    console.log("Cosine Similarity Query:", cosineSimQuery); // Debugging log
+    // Check if all similarity scores are very close to zero
+    if (cosineSimQuery.every(score => Math.abs(score) < 1e-10)) {
+        console.log("No similar items found.");
+        return ["barang tidak ditemukan"];
+    }
 
     const simScores = cosineSimQuery.map((score, index) => ({ index, score }));
     simScores.sort((a, b) => b.score - a.score);
@@ -76,6 +99,7 @@ function getRecommendations(query, vectorizer, tfidfMatrix, df, topN = 20) {
     }));
 
     const idItems = recommendations.map((rec) => rec.ProductId);
+    console.log("Recommended IDs:", idItems);
     return idItems;
 }
 
@@ -84,12 +108,9 @@ async function getProductDetailsByIds(ids) {
         const products = await knex("Products")
             .select("Products.*", "Brands.BrandName", "Categories.CategoryName")
             .leftJoin("Brands", "Products.BrandId", "Brands.BrandId")
-            .leftJoin(
-                "Categories",
-                "Products.CategoryId",
-                "Categories.CategoryId"
-            )
+            .leftJoin("Categories", "Products.CategoryId", "Categories.CategoryId")
             .whereIn("ProductId", ids);
+
         for (const product of products) {
             const imgUrl = await getProductSignedUrl(
                 product.Picture,

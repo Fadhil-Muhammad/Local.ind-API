@@ -2,6 +2,19 @@ const express = require("express");
 const router = express.Router();
 const recommendationService = require("../AI/recommendationService");
 
+let data, vectorizer, tfidfMatrix, df;
+
+// Initialize data on server start
+(async function initializeData() {
+    try {
+        data = await recommendationService.fetchDataFromDB();
+        ({ vectorizer, tfidfMatrix, df } = await recommendationService.preprocessData(data));
+        console.log("Data initialized successfully");
+    } catch (error) {
+        console.error("Error initializing data:", error);
+    }
+})();
+
 router.get("/", async (req, res) => {
     const query = req.query.query;
     if (!query) {
@@ -9,19 +22,25 @@ router.get("/", async (req, res) => {
     }
 
     try {
-        const data = await recommendationService.fetchDataFromDB();
-        const { vectorizer, tfidfMatrix, df } =
-            await recommendationService.preprocessData(data);
+        if (!data || !vectorizer || !tfidfMatrix || !df) {
+            return res.status(503).json({ error: "Service is initializing. Please try again later." });
+        }
+
         const recommendedIds = recommendationService.getRecommendations(
             query,
             vectorizer,
             tfidfMatrix,
             df
         );
-        const productDetails =
-            await recommendationService.getProductDetailsByIds(recommendedIds);
+
+        if (recommendedIds[0] === "barang tidak ditemukan") {
+            return res.json({ product: [], message: "No similar items found" });
+        }
+
+        const productDetails = await recommendationService.getProductDetailsByIds(recommendedIds);
         res.json({ product: productDetails });
     } catch (error) {
+        console.error("Error processing request:", error);
         res.status(500).json({
             error: "An error occurred while processing your request",
         });
