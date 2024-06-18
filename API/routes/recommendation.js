@@ -26,12 +26,24 @@ router.get("/", async (req, res) => {
             return res.status(503).json({ error: "Service is initializing. Please try again later." });
         }
 
-        const recommendedIds = recommendationService.getRecommendations(
+        let recommendedIds = recommendationService.getRecommendations(
             query,
             vectorizer,
             tfidfMatrix,
             df
         );
+
+        if (recommendedIds[0] === "barang tidak ditemukan") {
+            // Try again with more aggressive preprocessing
+            recommendedIds = recommendationService.getRecommendations(
+                query,
+                vectorizer,
+                tfidfMatrix,
+                df,
+                5,
+                true  // Set noItemsFound to true
+            );
+        }
 
         if (recommendedIds[0] === "barang tidak ditemukan") {
             return res.json({ product: [], message: "No similar items found" });
@@ -46,5 +58,4 @@ router.get("/", async (req, res) => {
         });
     }
 });
-
 module.exports = router;

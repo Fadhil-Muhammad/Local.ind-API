@@ -57,16 +57,28 @@ function preprocessQuery(query, noItemsFound = false) {
         if (query.includes('ei')) return 'eiger';
     }
 
-    query = query.replace(/exe/g, 'executive');
-    query = query.replace(/er/g, 'erigo');
-    query = query.replace(/ei/g, 'eiger');
+    // query = query.replace(/exe/g, 'executive');
+    // query = query.replace(/er/g, 'erigo');
+    // query = query.replace(/ei/g, 'eiger');
 
     return query;
 }
 
 // Get recommendations
-function getRecommendations(query, vectorizer, tfidfMatrix, df, topN = 10) {
+function getRecommendations(query, vectorizer, tfidfMatrix, df, topN = 5) {
     query = preprocessQuery(query);
+    console.log("Preprocessed query:", query);  // Debug log
+
+    // First, try to find exact matches for brand names
+    const exactMatches = df.filter(item => 
+        item.combined_features.toLowerCase().includes(query.toLowerCase())
+    );
+
+    if (exactMatches.length > 0) {
+        console.log("Found exact matches for brand:", exactMatches.length);
+        return exactMatches.slice(0, topN).map(item => item.ProductId);
+    }
+
     const queryVector = [];
     vectorizer.tfidfs(query, (i, measure) => queryVector.push(measure));
 
@@ -83,6 +95,8 @@ function getRecommendations(query, vectorizer, tfidfMatrix, df, topN = 10) {
         );
         return dotProduct / (normA * normB) || 0; // Return 0 if NaN
     });
+
+    console.log("Cosine similarities:", cosineSimQuery.slice(0, 5));  // Debug log
 
     // Check if all similarity scores are very close to zero
     if (cosineSimQuery.every(score => Math.abs(score) < 1e-10)) {
